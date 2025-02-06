@@ -4,8 +4,8 @@ namespace ApiPelículas.Repository.IRepository
 {
     public interface ICategoryRepository
     {
-        ICollection<Category> GetAll();
-        Category GetById(int id);
+        ICollection<Category> GetAllCategories();
+        Category GetCategoryById(int id);
         bool ExistsById(int id);
         bool ExistsByName(string name);
         bool Create(Category category);

@@ -25,7 +25,7 @@ namespace ApiPelículas.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult GetCategories()
         {
-            var categoryList = _categoryRepository.GetAll();
+            var categoryList = _categoryRepository.GetAllCategories();
             var categoryListDto = new List<CategoryDto>();
 
             foreach (var category in categoryList)
@@ -35,14 +35,14 @@ namespace ApiPelículas.Controllers
             return Ok(categoryListDto);
         }
 
-        [HttpGet("{id:int}", Name = "GetCategory")]
+        [HttpGet("{categoryId:int}", Name = "GetCategory")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult GetCategory(int id)
+        public IActionResult GetCategory(int categoryId)
         {
-            var category = _categoryRepository.GetById(id);
+            var category = _categoryRepository.GetCategoryById(categoryId);
 
             if (category == null)
             {
@@ -81,11 +81,107 @@ namespace ApiPelículas.Controllers
             
             if (!_categoryRepository.Create(category))
             {
-                ModelState.AddModelError("", $"'Error saving {createCategoryDto.Name}' in DB.");
+                ModelState.AddModelError("", $"'Error saving {category.Name}' in DB.");
                 return StatusCode(500, ModelState);
             }
 
             return CreatedAtRoute("GetCategory", new { Id = category.Id }, category);
+        }
+
+        [HttpPatch("{categoryId:int}", Name = "UpdatePatchCatergory")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
+        public IActionResult UpdatePatchCategory(int categoryId, [FromBody] CategoryDto categoryDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (categoryDto == null  || categoryId != categoryDto.Id)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (_categoryRepository.GetCategoryById(categoryId) == null)
+            {
+                return NotFound($"Categori with ID {categoryId} was not found.");
+            }
+
+            var category = _mapper.Map<Category>(categoryDto);
+
+
+            if (!_categoryRepository.Update(category))
+            {
+                ModelState.AddModelError("", $"'Error saving changes in {category.Name}' in DB.");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
+        }
+
+        [HttpPut("{categoryId:int}", Name = "UpdatePutCatergory")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
+        public IActionResult UpdatePutCategory(int categoryId, [FromBody] CategoryDto categoryDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (categoryDto == null  || categoryId != categoryDto.Id)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (_categoryRepository.GetCategoryById(categoryId) == null)
+            { 
+                return NotFound($"Categori with ID {categoryId} was not found.");
+            }
+
+            var category = _mapper.Map<Category>(categoryDto);
+
+
+            if (!_categoryRepository.Update(category))
+            {
+                ModelState.AddModelError("", $"'Error saving changes in {category.Name}' in DB.");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{categoryId:int}", Name = "DeleteCatergory")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
+        public IActionResult DeleteCategory(int categoryId)
+        {
+            if (!_categoryRepository.ExistsById(categoryId))
+            {
+                return NotFound($"Category with ID {categoryId} not found.");
+            }
+
+            var category = _categoryRepository.GetCategoryById(categoryId);
+            if (!_categoryRepository.Delete(category))
+            {
+                ModelState.AddModelError("", $"Could not remove category ID {categoryId}.");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
         }
     }
 }

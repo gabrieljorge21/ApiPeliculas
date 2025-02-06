@@ -38,12 +38,12 @@ namespace ApiPelículas.Repository
             return _context.Categories.Any(c => c.Name.ToLower().Trim() == name.ToLower().Trim());
         }
 
-        public ICollection<Category> GetAll()
+        public ICollection<Category> GetAllCategories()
         {
             return _context.Categories.OrderBy(c => c.Name).ToList();
         }
 
-        public Category GetById(int id)
+        public Category GetCategoryById(int id)
         {
             return _context.Categories.FirstOrDefault(c => c.Id == id);
         }
@@ -56,7 +56,12 @@ namespace ApiPelículas.Repository
         public bool Update(Category category)
         {
             category.CreationDate = DateTime.Now;
-            _context.Categories.Update(category);
+            
+            var existingCategory = _context.Categories.Find(category.Id);
+            if (existingCategory != null)
+            {
+                _context.Entry(existingCategory).CurrentValues.SetValues(category);
+            }
             return Save();
         }
     }
